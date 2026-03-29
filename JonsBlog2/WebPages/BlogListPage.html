@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List Of Jon's Thoughts</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+</head>
+<body class="min-h-screen bg-blue-700">
+
+<div>
+    <nav>
+        <ul class="flex justify-center space-x-4 p-4 bg-gradient-to-tr from-amber-700 via-amber-400 to-yellow-200 rounded-lg text-amber-950 font-bold">
+            <li><a href="#" class="font-bold text-black hover:text-gray-500">Home</a></li>
+            <li><a href="#" class="font-bold text-black hover:text-gray-500">About</a></li>
+            <li><a href="#" class="font-bold text-black hover:text-gray-500">Blog</a></li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Blog file list card -->
+<div class="flex justify-center px-4 py-8">
+    <div class="relative p-6 bg-[#2a2a2a] rounded-[40px] border-[12px] border-[#1a1a1a] shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] w-full max-w-4xl">
+        <div class="rounded-[20px] overflow-hidden shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.1)]">
+            <div class="bg-zinc-950 p-10 min-h-[300px] relative">
+                <div class="w-full max-w-3xl mx-auto bg-black shadow-sm border border-slate-200 rounded-lg p-10">
+                    <h2 class="font-mono text-green-500 [text-shadow:0_0_5px_rgba(34,197,94,0.8)] text-4xl mb-6 text-center">
+                        Blog Posts
+                    </h2>
+                    <ul id="file-list" class="divide-y divide-zinc-700 font-mono">
+                        <li class="py-2 text-green-500/70 italic">Loading...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '';
+
+    fetch(`${API_BASE}/blogs/files`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            }
+
+            return response.json();
+        })
+        .then(files => {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+
+            if (files.length === 0) {
+                list.innerHTML = '<li class="py-2 text-green-500/70 italic">No blog posts found.</li>';
+                return;
+            }
+
+            files.forEach(fileName => {
+                const li = document.createElement('li');
+                li.className = 'py-2';
+
+                const a = document.createElement('a');
+                a.href = `${API_BASE}/blogs/files/${encodeURIComponent(fileName)}`;
+                a.target = '_blank';
+                a.textContent = fileName;
+                a.className = 'text-green-500 [text-shadow:0_0_5px_rgba(34,197,94,0.8)] hover:text-green-400 hover:underline';
+
+                li.appendChild(a);
+                list.appendChild(li);
+            });
+        })
+        .catch(err => {
+            document.getElementById('file-list').innerHTML =
+                '<li class="py-2 text-red-500">Failed to load blog posts.</li>';
+            console.error('Failed to fetch blog files:', err);
+        });
+</script>
+
+</body>
+</html>
