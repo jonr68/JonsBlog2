@@ -89,6 +89,20 @@ public class BlogController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [HttpGet("write")]
+    public IActionResult GetWritePage()
+    {
+        var writePagePath = Path.Combine(GetWebPagesDirectory(), "BlogWritePage.html");
+
+        if (!System.IO.File.Exists(writePagePath))
+        {
+            return NotFound();
+        }
+
+        return PhysicalFile(writePagePath, "text/html; charset=utf-8");
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Blog blog, CancellationToken cancellationToken)
     {
