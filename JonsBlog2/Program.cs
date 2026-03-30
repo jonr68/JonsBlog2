@@ -1,13 +1,35 @@
+using JonsBlog2.Options;
+using JonsBlog2.Security;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services
+    .AddOptions<AdminLoginOptions>()
+    .Bind(builder.Configuration.GetSection(AdminLoginOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.Username), "Admin username must be configured.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.PasswordHash), "Admin password hash must be configured.")
+    .Validate(options => AdminPasswordHasher.IsHashFormatValid(options.PasswordHash),
+        "Admin password hash is not in a valid format.")
+    .ValidateOnStart();
+
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "JonsBlog2.AdminAuth";
+        options.LoginPath = "/admin/login-page";
+        options.AccessDeniedPath = "/admin/login-page";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -21,6 +43,9 @@ app.UseStaticFiles(new StaticFileOptions
         Path.Combine(builder.Environment.ContentRootPath, "css")),
     RequestPath = "/css"
 });
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
